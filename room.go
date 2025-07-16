@@ -23,11 +23,11 @@ type room struct {
 }
 
 // newRoom lager et nytt rom
-func newRoom *room {
-	return &room {
+func newRoom() *room {
+	return &room{
 		forward: make(chan []byte),
-		join: make(chan *client),
-		leave: make(chan *client),
+		join:    make(chan *client),
+		leave:   make(chan *client),
 		clients: make(map[*client]bool),
 	}
 }
@@ -71,7 +71,7 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		room:   r,
 	}
 	r.join <- client
-	deref func() {r.leave <- client} ()
+	defer func() { r.leave <- client }()
 	go client.write()
 	client.read()
 }
