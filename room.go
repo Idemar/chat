@@ -14,3 +14,22 @@ type room struct {
 	// clients holder alle nåværende klienter i dette rommet.
 	clients map[*client]bool
 }
+
+func (r *room) run() {
+	for {
+		select {
+		case client := <-r.join:
+			// blir med
+			r.clients[client] = true
+		case client := <-r.leave:
+			// forlater
+			delete(r.clients, client)
+			close(client.send)
+		case msg := <-r.forward:
+			// videresend melding til alle klienter
+			for client := range r.clients {
+				client.send <- msg
+			}
+		}
+	}
+}
