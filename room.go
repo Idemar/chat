@@ -1,6 +1,7 @@
 package main
 
 import (
+	"chat/trace"
 	"log"
 	"net/http"
 
@@ -20,6 +21,9 @@ type room struct {
 
 	// clients holder alle nåværende klienter i dette rommet.
 	clients map[*client]bool
+
+	// tracer vil motta trace informasjon om aktiviter i rommet
+	tracer trace.Tracer
 }
 
 // newRoom lager et nytt rom
@@ -38,14 +42,18 @@ func (r *room) run() {
 		case client := <-r.join:
 			// blir med
 			r.clients[client] = true
+			r.tracer.Tracer("New client joined")
 		case client := <-r.leave:
 			// forlater
 			delete(r.clients, client)
 			close(client.send)
+			r.tracer.Tracer("Client left")
 		case msg := <-r.forward:
+			r.tracer.Tracer("Message received: ", string(msg))
 			// videresend melding til alle klienter
 			for client := range r.clients {
 				client.send <- msg
+				r.tracer.Tracer("-- sent to client")
 			}
 		}
 	}
