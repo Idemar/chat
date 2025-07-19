@@ -33,6 +33,7 @@ func newRoom() *room {
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
+		tracer:  trace.Off(),
 	}
 }
 
@@ -42,18 +43,18 @@ func (r *room) run() {
 		case client := <-r.join:
 			// blir med
 			r.clients[client] = true
-			r.tracer.Tracer("New client joined")
+			r.tracer.Trace("New client joined")
 		case client := <-r.leave:
 			// forlater
 			delete(r.clients, client)
 			close(client.send)
-			r.tracer.Tracer("Client left")
+			r.tracer.Trace("Client left")
 		case msg := <-r.forward:
-			r.tracer.Tracer("Message received: ", string(msg))
+			r.tracer.Trace("Message received: ", string(msg))
 			// videresend melding til alle klienter
 			for client := range r.clients {
 				client.send <- msg
-				r.tracer.Tracer("-- sent to client")
+				r.tracer.Trace("-- sent to client")
 			}
 		}
 	}
