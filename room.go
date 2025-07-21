@@ -11,7 +11,7 @@ import (
 type room struct {
 	// videresend er en kanal som inneholder innkommende meldinger
 	// som skal videresendes til de andre klientene.
-	forward chan []byte
+	forward chan *message
 
 	// join  er en kanal for klienter som ønsker å bli med i rommet.
 	join chan *client
@@ -29,7 +29,7 @@ type room struct {
 // newRoom lager et nytt rom
 func newRoom() *room {
 	return &room{
-		forward: make(chan []byte),
+		forward: make(chan *message),
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
@@ -50,7 +50,7 @@ func (r *room) run() {
 			close(client.send)
 			r.tracer.Trace("Client left")
 		case msg := <-r.forward:
-			r.tracer.Trace("Message received: ", string(msg))
+			r.tracer.Trace("Message received: ", msg.Message)
 			// videresend melding til alle klienter
 			for client := range r.clients {
 				client.send <- msg
@@ -76,7 +76,7 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	client := &client{
 		socket: socket,
-		send:   make(chan []byte, messageBufferSize),
+		send:   make(chan *message, messageBufferSize),
 		room:   r,
 	}
 	r.join <- client
