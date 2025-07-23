@@ -1,54 +1,75 @@
 <html>
   <head>
     <title>Chat</title>
+    <link
+      rel="stylesheet"
+      href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+    />
     <style>
-      input {display: block;}
-      ul {list-style: none;}
+      ul#messages {
+        list-style: none;
+      }
+      ul#messages li {
+        margin-bottom: 2px;
+      }
+      ul#messagesli img {
+        margin-right: 10px;
+      }
     </style>
   </head>
   <body>
-   <ul id="messages"></ul>
-   <form id="chatbox">
-      {{.UserData.name}}:</br>
-    <textarea></textarea>
-    <input type="submit" value="Send" />
-    eller <a href="logout">logg ut</a>
-   </form>
-   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <div class="container">
+      <div class="panel panel-primary">
+        <div class="panel-body">
+          <ul id="messages"></ul>
+        </div>
+      </div>
+      <form id="chatbox" role="form">
+        <div class="form-group">
+          <label for="messages">Send melding som {{.UserData.name}} </label>
+          eller <a href="/logout">logg ut</a>
+          <textarea id="messages" class="form-control"></textarea>
+        </div>
+        <input type="submit" value="Send" class="btn btn-default" />
+      </form>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script>
-      $(function() {
+      $(function () {
         var socket = null;
         var msgBox = $("#chatbox textarea");
         var messages = $("#messages");
-        $("#chatbox").submit(function() {
+        $("#chatbox").submit(function () {
           if (!socket) {
             alert("Error: There is no socket connection.");
             return false;
           }
-          socket.send(JSON.stringify({"message": msgBox.val()}));
+          socket.send(JSON.stringify({ message: msgBox.val() }));
           msgBox.val("");
           return false;
         });
         if (!window["WebSocket"]) {
-          alert("Error: Your browser does not support web socket.")
-        }else {
+          alert("Error: Your browser does not support web socket.");
+        } else {
           socket = new WebSocket("ws://{{.Host}}/room");
-          socket.onclose = function() {
+          socket.onclose = function () {
             alert("Connection has been closed.");
-          }
-          socket.onmessage = function(e) {
+          };
+          socket.onmessage = function (e) {
             var msg = JSON.parse(e.data);
             messages.append(
               $("<li>").append(
-                $("<img>").css({
-                  width:50,
-                  verticalAlign:"middle"
-                }).attr("src", msg.AvatarURL),
-                $("<strong>").text(msg.Name + ": "),
-                $("<span>").text(msg.Message)
-              )
+                $("<img>")
+                  .attr("title", msg.Name)
+                  .css({
+                    width: 50,
+                    verticalAlign: "middle",
+                  })
+                  .attr("src", msg.AvatarURL),
+                $("<span>").text(msg.Message),
+              ),
             );
-          }
+          };
         }
       });
     </script>
