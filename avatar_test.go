@@ -20,16 +20,3 @@ func TestAuthAvatar(t *testing.T) {
 		t.Error("AuthAvatar.GetAvatarURL should return correct URL")
 	}
 }
-
-type AuthAvatar struct{}
-
-var UseAuthAvatar AuthAvatar
-
-func (AuthAvatar) GetAvatarURL(c *client) (string, error) {
-	if url, ok := c.userData["avatar_url"]; ok {
-		if urlStr, ok := url.(string); ok {
-			return urlStr, nil
-		}
-	}
-	return "", ErrNoAvatarURL
-}
