@@ -20,3 +20,7 @@ func TestAuthAvatar(t *testing.T) {
 		t.Error("AuthAvatar.GetAvatarURL should return correct URL")
 	}
 }
+
+func TestGravatarAvatar(t *testing.T) {
+
+}
