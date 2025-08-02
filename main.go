@@ -17,6 +17,9 @@ import (
 	"github.com/stretchr/objx"
 )
 
+// angi den aktive Avatar-implementeringen
+var avatars Avatar = TryAvatars{UseFileSystemAvatar, UseAuthAvatar, UseGravatar}
+
 // templ representerer en enkelt mal
 type templateHandler struct {
 	once     sync.Once
@@ -48,7 +51,7 @@ func main() {
 		github.New(idGithub, secretGithub, "http://localhost:8080/auth/callback/github"),
 		google.New(idGoogle, secretGoogle, "http://localhost:8080/auth/callback/google"),
 	)
-	r := newRoom(UserGravatar)
+	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
 	http.Handle("/login", &templateHandler{filename: "login.html"})
@@ -66,6 +69,7 @@ func main() {
 	})
 	http.Handle("/upload", &templateHandler{filename: "upload.html"})
 	http.HandleFunc("/uploader", uploadHandler)
+	http.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("/avatars"))))
 
 	// få rommet i gang
 	go r.run()
